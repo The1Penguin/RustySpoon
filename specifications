@@ -1,4 +1,3 @@
-TODO:
-    Assign a basic role to everyone who joins the server
-    Fetch a player character from a world, and check if they belong to our FC.
-
+[x] -> Assign a basic role to everyone who joins the server
+[] -> Able to assign a reoccuring notification
+[] -> Ping to check if Louisoix is down or no

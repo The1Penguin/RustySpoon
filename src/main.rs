@@ -1,6 +1,6 @@
 mod commands;
 
-use crate::commands::sentinel::TEMP_COMMAND;
+use commands::{sentinel::*, general::*};
 
 use std::{
     collections::{HashMap, HashSet},
@@ -40,6 +40,10 @@ struct Handler;
 #[commands(temp)]
 struct Sentinel;
 
+#[group]
+#[commands(down)]
+struct General;
+
 #[async_trait]
 impl EventHandler for Handler {
     async fn message(&self, ctx: Context, msg: Message) {
@@ -78,8 +82,9 @@ async fn main() {
 
     let framework = StandardFramework::new()
         .configure(|c| c
-                        .prefix("~")
+                        .prefix("<")
                         .owners(owners))
+                        .group(&GENERAL_GROUP)
                         .group(&SENTINEL_GROUP);
 
     // Creates a client and a handler
