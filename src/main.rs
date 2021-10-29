@@ -29,7 +29,8 @@ use serenity::{
     model::{
         channel::{Channel, Message},
         gateway::Ready,
-        id::UserId,
+        guild::*,
+        id::{UserId, GuildId, RoleId},
         permissions::Permissions,
     },
 };
@@ -46,7 +47,12 @@ struct General;
 
 #[async_trait]
 impl EventHandler for Handler {
-    async fn message(&self, ctx: Context, msg: Message) {
+
+    // Adds a role when a memeber joins the server
+    async fn guild_member_addition(&self, ctx: Context, guild_id: GuildId, new_member: Member){
+        println!("{:#?}", guild_id.roles(ctx.http.as_ref()).await);
+        //new_member.add_role(ctx.http.as_ref(), guild_id.roles(ctx.http.as_ref()));
+
     }
 
     // Prints successfully connected
@@ -60,10 +66,10 @@ async fn main() {
     // Extract token from env variable
     let token = env::var("DISCORD_TOKEN").expect("Expected a token in the environment");
 
-        let http = Http::new_with_token(&token);
+    let http = Http::new_with_token(&token);
 
     // We will fetch your bot's owners and id
-    let (owners, bot_id) = match http.get_current_application_info().await {
+    let (owners, _bot_id) = match http.get_current_application_info().await {
         Ok(info) => {
             let mut owners = HashSet::new();
             if let Some(team) = info.team {
