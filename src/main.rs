@@ -1,6 +1,6 @@
 mod commands;
 
-use commands::{sentinel::*, general::*};
+use commands::{general::*, sentinel::*};
 
 use std::{
     collections::{HashMap, HashSet},
@@ -11,18 +11,11 @@ use std::{
 
 use serenity::{
     async_trait,
-    prelude::*,
     framework::standard::{
         buckets::{LimitedFor, RevertBucket},
         help_commands,
         macros::{check, command, group, help, hook},
-        Args,
-        CommandGroup,
-        CommandOptions,
-        CommandResult,
-        DispatchError,
-        HelpOptions,
-        Reason,
+        Args, CommandGroup, CommandOptions, CommandResult, DispatchError, HelpOptions, Reason,
         StandardFramework,
     },
     http::Http,
@@ -30,9 +23,10 @@ use serenity::{
         channel::{Channel, Message},
         gateway::Ready,
         guild::*,
-        id::{UserId, GuildId, RoleId},
+        id::{GuildId, RoleId, UserId},
         permissions::Permissions,
     },
+    prelude::*,
 };
 
 struct Handler;
@@ -45,24 +39,27 @@ struct Sentinel;
 #[commands(down)]
 struct General;
 
-fn get_roleId(map: HashMap<RoleId, Role>, name : String) -> Option<RoleId> {
+fn get_roleId(map: HashMap<RoleId, Role>, name: String) -> Option<RoleId> {
     map.iter()
         .find_map(|(key, val)| if val.name == name { Some(*key) } else { None })
 }
 
-
 #[async_trait]
 impl EventHandler for Handler {
-
     // Adds a role when a memeber joins the server
-    async fn guild_member_addition(&self, ctx: Context, guild_id: GuildId, mut new_member: Member){
+    async fn guild_member_addition(&self, ctx: Context, guild_id: GuildId, mut new_member: Member) {
         println!("Person has joined");
-        let roles = guild_id.roles(ctx.http.as_ref()).await.expect("Expected roles");
+        let roles = guild_id
+            .roles(ctx.http.as_ref())
+            .await
+            .expect("Expected roles");
         let role = get_roleId(roles, "Friends".to_string()).expect("Couldn't find role");
 
         println!("{:#?}", role);
-        new_member.add_role(ctx.http.as_ref(), role).await.expect("Adding role didn't work");
-
+        new_member
+            .add_role(ctx.http.as_ref(), role)
+            .await
+            .expect("Adding role didn't work");
     }
 
     // Prints successfully connected
@@ -91,29 +88,24 @@ async fn main() {
                 Ok(bot_id) => (owners, bot_id.id),
                 Err(why) => panic!("Could not access the bot id: {:?}", why),
             }
-        },
+        }
         Err(why) => panic!("Could not access application info: {:?}", why),
     };
 
-
     let framework = StandardFramework::new()
-        .configure(|c| c
-                        .prefix("<")
-                        .owners(owners))
-                        .group(&GENERAL_GROUP)
-                        .group(&SENTINEL_GROUP);
+        .configure(|c| c.prefix("<").owners(owners))
+        .group(&GENERAL_GROUP)
+        .group(&SENTINEL_GROUP);
 
     // Creates a client and a handler
-    let mut client =
-        Client::builder(&token)
-            .framework(framework)
-            .event_handler(Handler)
-            .await
-            .expect("Err creating client");
+    let mut client = Client::builder(&token)
+        .framework(framework)
+        .event_handler(Handler)
+        .await
+        .expect("Err creating client");
 
     // Starts the client
     if let Err(why) = client.start().await {
         println!("Client error: {:?}", why);
     }
 }
-

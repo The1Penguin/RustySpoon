@@ -1,2 +1,2 @@
-pub mod sentinel;
 pub mod general;
+pub mod sentinel;
