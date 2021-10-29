@@ -45,13 +45,23 @@ struct Sentinel;
 #[commands(down)]
 struct General;
 
+fn get_roleId(map: HashMap<RoleId, Role>, name : String) -> Option<RoleId> {
+    map.iter()
+        .find_map(|(key, val)| if val.name == name { Some(*key) } else { None })
+}
+
+
 #[async_trait]
 impl EventHandler for Handler {
 
     // Adds a role when a memeber joins the server
-    async fn guild_member_addition(&self, ctx: Context, guild_id: GuildId, new_member: Member){
-        println!("{:#?}", guild_id.roles(ctx.http.as_ref()).await);
-        //new_member.add_role(ctx.http.as_ref(), guild_id.roles(ctx.http.as_ref()));
+    async fn guild_member_addition(&self, ctx: Context, guild_id: GuildId, mut new_member: Member){
+        println!("Person has joined");
+        let roles = guild_id.roles(ctx.http.as_ref()).await.expect("Expected roles");
+        let role = get_roleId(roles, "Friends".to_string()).expect("Couldn't find role");
+
+        println!("{:#?}", role);
+        new_member.add_role(ctx.http.as_ref(), role).await.expect("Adding role didn't work");
 
     }
 
