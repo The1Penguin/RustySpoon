@@ -25,7 +25,9 @@ use serenity::{
         guild::*,
         id::{GuildId, RoleId, UserId},
         permissions::Permissions,
+        event::GuildMemberAddEvent,
     },
+    client::bridge::gateway::GatewayIntents,
     prelude::*,
 };
 
@@ -64,15 +66,14 @@ impl EventHandler for Handler {
             }
         };
 
-        println!("{:#?}", role);
         if let Err(why) = new_member.add_role(ctx.http.as_ref(), role).await {
-            println!("Adding role didn't work");
+            println!("Adding role didn't work, {}", why);
         }
     }
 
     // Prints successfully connected
     async fn ready(&self, ctx: Context, ready: Ready) {
-        println!("connected!");
+        println!("{} connected", ready.user.name);
         let permissions = Permissions::all();
         match ready.user.invite_url(ctx.http.as_ref(), permissions).await {
             Ok(v) => {
@@ -121,6 +122,7 @@ async fn main() {
     let mut client = Client::builder(&token)
         .framework(framework)
         .event_handler(Handler)
+        .intents(GatewayIntents::all())
         .await
         .expect("Err creating client");
 
