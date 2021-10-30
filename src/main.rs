@@ -34,7 +34,7 @@ use serenity::{
 struct Handler;
 
 #[group]
-#[commands(temp)]
+#[commands(reminder)]
 struct Sentinel;
 
 #[group]
