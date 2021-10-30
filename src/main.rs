@@ -11,6 +11,7 @@ use std::{
 
 use serenity::{
     async_trait,
+    client::bridge::gateway::GatewayIntents,
     framework::standard::{
         buckets::{LimitedFor, RevertBucket},
         help_commands,
@@ -21,13 +22,12 @@ use serenity::{
     http::Http,
     model::{
         channel::{Channel, Message},
+        event::GuildMemberAddEvent,
         gateway::Ready,
         guild::*,
         id::{GuildId, RoleId, UserId},
         permissions::Permissions,
-        event::GuildMemberAddEvent,
     },
-    client::bridge::gateway::GatewayIntents,
     prelude::*,
 };
 
@@ -79,8 +79,7 @@ impl EventHandler for Handler {
             Ok(v) => {
                 println!("{} is the invite link for the bot", v);
                 return;
-
-            },
+            }
             Err(why) => {
                 println!("Error getting invite url: {:?}", why);
                 return;
