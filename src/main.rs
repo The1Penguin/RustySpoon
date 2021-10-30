@@ -49,22 +49,42 @@ impl EventHandler for Handler {
     // Adds a role when a memeber joins the server
     async fn guild_member_addition(&self, ctx: Context, guild_id: GuildId, mut new_member: Member) {
         println!("Person has joined");
-        let roles = guild_id
-            .roles(ctx.http.as_ref())
-            .await
-            .expect("Expected roles");
-        let role = get_roleId(roles, "Friends".to_string()).expect("Couldn't find role");
+        let roles = match guild_id.roles(ctx.http.as_ref()).await {
+            Ok(v) => v,
+            Err(why) => {
+                println!("Couln't get the roles: {:?}", why);
+                return;
+            }
+        };
+        let role = match get_roleId(roles, "Friends".to_string()) {
+            Some(v) => v,
+            None => {
+                println!("Couln't find the specific role");
+                return;
+            }
+        };
 
         println!("{:#?}", role);
-        new_member
-            .add_role(ctx.http.as_ref(), role)
-            .await
-            .expect("Adding role didn't work");
+        if let Err(why) = new_member.add_role(ctx.http.as_ref(), role).await {
+            println!("Adding role didn't work");
+        }
     }
 
     // Prints successfully connected
-    async fn ready(&self, _: Context, ready: Ready) {
+    async fn ready(&self, ctx: Context, ready: Ready) {
         println!("connected!");
+        let permissions = Permissions::all();
+        match ready.user.invite_url(ctx.http.as_ref(), permissions).await {
+            Ok(v) => {
+                println!("{} is the invite link for the bot", v);
+                return;
+
+            },
+            Err(why) => {
+                println!("Error getting invite url: {:?}", why);
+                return;
+            }
+        };
     }
 }
 
