@@ -1,3 +1,6 @@
+#[macro_use]
+extern crate lazy_static;
+
 mod commands;
 
 use commands::{general::*, sentinel::*};
@@ -34,7 +37,7 @@ use serenity::{
 struct Handler;
 
 #[group]
-#[commands(reminder)]
+#[commands(reminder, disable_reminder)]
 struct Sentinel;
 
 #[group]
@@ -126,7 +129,7 @@ async fn main() {
         .expect("Err creating client");
 
     // Starts the client
-    if let Err(why) = client.start().await {
+    if let Err(why) = client.start_shards(16).await {
         println!("Client error: {:?}", why);
     }
 }
