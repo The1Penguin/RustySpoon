@@ -129,7 +129,7 @@ async fn main() {
         .expect("Err creating client");
 
     // Starts the client
-    if let Err(why) = client.start_shards(16).await {
+    if let Err(why) = client.start().await {
         println!("Client error: {:?}", why);
     }
 }
