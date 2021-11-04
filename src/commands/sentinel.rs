@@ -29,26 +29,12 @@ use uuid::Uuid;
 pub async fn reminder(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let first = args.single::<u64>()?;
     let interval = args.single::<u64>()?;
-    let command = args.rest();
+    let command = args.rest().to_owned();
+
     println!(
         "Message recieved, first is {}, interval is {} and command is {}",
-        first, interval, command
+        first, interval, &command as &str
     );
-    let my_uuid = Uuid::new_v4();
-    println!("uuid = {}", my_uuid);
-
-    if let Err(why) = msg
-        .channel_id
-        .say(
-            &ctx.http,
-            format!("The id for this operation is {}", my_uuid),
-        )
-        .await
-    {
-        println!("Error sending message, {:?}", why);
-        return Ok(());
-    }
-
     loop {
         println!("In first loop");
         match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
@@ -69,7 +55,7 @@ pub async fn reminder(ctx: &Context, msg: &Message, mut args: Args) -> CommandRe
     let channel_id = msg.channel_id;
     tokio::task::spawn(async move {
         loop {
-            if let Err(why) = channel_id.say(&http, command).await {
+            if let Err(why) = channel_id.say(&http, &command as &str).await {
                 println!("Error sending message, {:?}", why);
             }
             sleep(Duration::from_secs(interval)).await;
