@@ -36,11 +36,9 @@ pub async fn reminder(ctx: &Context, msg: &Message, mut args: Args) -> CommandRe
         first, interval, &command as &str
     );
     loop {
-        println!("In first loop");
         match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
             Ok(v) => {
                 if v.as_secs() > first {
-                    println!("Finished first loop");
                     break;
                 }
             }
