@@ -18,7 +18,7 @@ use serenity::{
 };
 
 use std::{
-    collections::{HashMap, HashSet},
+    collections::{HashMap},
     time::{Duration, SystemTime},
 };
 
@@ -66,7 +66,7 @@ pub async fn reminder(ctx: &Context, msg: &Message, mut args: Args) -> CommandRe
         println!("Error sending message, {:?}", why);
     }
 
-    let join_handlertask: JoinHandle<_> = tokio::task::spawn(async move {
+    let join_handlertask = tokio::task::spawn(async move {
         loop {
             if let Err(why) = channel_id.say(&http, &command as &str).await {
                 println!("Error sending message, {:?}", why);
@@ -82,12 +82,12 @@ pub async fn reminder(ctx: &Context, msg: &Message, mut args: Args) -> CommandRe
 
 #[command]
 #[allowed_roles("Sentinels")]
-pub async fn disable_reminder(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
+pub async fn disable_reminder(_ctx: &Context, _msg: &Message, args: Args) -> CommandResult {
     let command = args.rest();
     let uuid = match Uuid::parse_str(command) {
         Ok(v) => v,
         Err(why) => {
-            println!("Error parsing string");
+            println!("Error parsing string, {}", why);
             return Ok(());
         }
     };

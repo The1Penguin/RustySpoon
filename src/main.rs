@@ -1,3 +1,4 @@
+#![allow(unused_imports)]
 #[macro_use]
 extern crate lazy_static;
 mod commands;
@@ -43,7 +44,7 @@ struct Sentinel;
 #[commands(down)]
 struct General;
 
-fn get_roleId(map: HashMap<RoleId, Role>, name: String) -> Option<RoleId> {
+fn get_role_id(map: HashMap<RoleId, Role>, name: String) -> Option<RoleId> {
     map.iter()
         .find_map(|(key, val)| if val.name == name { Some(*key) } else { None })
 }
@@ -60,7 +61,7 @@ impl EventHandler for Handler {
                 return;
             }
         };
-        let role = match get_roleId(roles, "Friends".to_string()) {
+        let role = match get_role_id(roles, "Friends".to_string()) {
             Some(v) => v,
             None => {
                 println!("Couln't find the specific role");
