@@ -11,18 +11,24 @@ use serenity::{
     model::{
         channel::{Channel, Message},
         gateway::Ready,
-        id::UserId,
+        id::{ChannelId, UserId},
         permissions::Permissions,
     },
     prelude::*,
 };
 
-use std::sync::{Arc, Mutex};
-use std::time::{Duration, SystemTime};
+use std::{
+    collections::{HashMap, HashSet},
+    time::{Duration, SystemTime},
+};
 
-use tokio::time::sleep;
+use tokio::{task::JoinHandle, time::sleep};
 
 use uuid::Uuid;
+
+lazy_static! {
+    static ref ACTIVE: Mutex<HashMap<uuid::Uuid, JoinHandle<()>>> = Mutex::new(HashMap::new());
+}
 
 #[command]
 #[allowed_roles("Sentinels")]
@@ -49,17 +55,27 @@ pub async fn reminder(ctx: &Context, msg: &Message, mut args: Args) -> CommandRe
         }
         sleep(Duration::from_secs(30)).await;
     }
+    let uuid = Uuid::new_v4();
     let http = ctx.http.clone();
     let channel_id = msg.channel_id;
-    tokio::task::spawn(async move {
+
+    if let Err(why) = channel_id
+        .say(&http, format! {"Uuid for the message is {}", uuid})
+        .await
+    {
+        println!("Error sending message, {:?}", why);
+    }
+
+    let join_handlertask: JoinHandle<_> = tokio::task::spawn(async move {
         loop {
             if let Err(why) = channel_id.say(&http, &command as &str).await {
                 println!("Error sending message, {:?}", why);
             }
             sleep(Duration::from_secs(interval)).await;
         }
-        
     });
+
+    ACTIVE.lock().await.insert(uuid, join_handlertask);
 
     Ok(())
 }
@@ -68,5 +84,23 @@ pub async fn reminder(ctx: &Context, msg: &Message, mut args: Args) -> CommandRe
 #[allowed_roles("Sentinels")]
 pub async fn disable_reminder(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let command = args.rest();
+    let uuid = match Uuid::parse_str(command) {
+        Ok(v) => v,
+        Err(why) => {
+            println!("Error parsing string");
+            return Ok(());
+        }
+    };
+    match ACTIVE.lock().await.get(&uuid) {
+        Some(v) => {
+            v.abort();
+        }
+        None => {
+            return Ok(());
+        }
+    }
+
+    ACTIVE.lock().await.remove(&uuid);
+
     return Ok(());
 }
