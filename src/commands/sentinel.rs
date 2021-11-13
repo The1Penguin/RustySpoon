@@ -37,10 +37,6 @@ pub async fn reminder(ctx: &Context, msg: &Message, mut args: Args) -> CommandRe
     let interval = args.single::<u64>()?;
     let command = args.rest().to_owned();
 
-    println!(
-        "Message recieved, first is {}, interval is {} and command is {}",
-        first, interval, &command as &str
-    );
     loop {
         match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
             Ok(v) => {
@@ -50,7 +46,6 @@ pub async fn reminder(ctx: &Context, msg: &Message, mut args: Args) -> CommandRe
             }
             Err(why) => {
                 println!("Something went wrong with time check, {:?}", why);
-                ()
             }
         }
         sleep(Duration::from_secs(30)).await;
@@ -60,7 +55,7 @@ pub async fn reminder(ctx: &Context, msg: &Message, mut args: Args) -> CommandRe
     let channel_id = msg.channel_id;
 
     if let Err(why) = channel_id
-        .say(&http, format! {"Uuid for the message is {}", uuid})
+        .say(&http, format!("Uuid for the message is {}", uuid))
         .await
     {
         println!("Error sending message, {:?}", why);
