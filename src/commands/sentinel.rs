@@ -63,8 +63,13 @@ pub async fn reminder(ctx: &Context, msg: &Message, mut args: Args) -> CommandRe
 
     let join_handlertask = tokio::task::spawn(async move {
         loop {
-            if let Err(why) = channel_id.say(&http, &command as &str).await {
-                println!("Error sending message, {:?}", why);
+            match &command as &str{
+                "cactpot" => cactpot (&http, &channel_id).await,
+                other => {
+                    if let Err(why) = channel_id.say(&http, other).await {
+                        println!("Error sending message, {:?}", why);
+                    }
+                }
             }
             sleep(Duration::from_secs(interval)).await;
         }
@@ -98,4 +103,22 @@ pub async fn disable_reminder(_ctx: &Context, _msg: &Message, args: Args) -> Com
     ACTIVE.lock().await.remove(&uuid);
 
     return Ok(());
+}
+
+pub async fn cactpot(http: &Http, channel_id: &ChannelId){
+    if let Err(why) = channel_id.send_message(http, |m| {
+    m.embed(|e| {
+        e.title("The weekly Jumbo Cactpot");
+        e.description("Jumbo Cactpot is coming soon, and if you want the early bird bonus, you better get down there");
+
+        e
+    });
+
+    m
+
+    }).await {
+        println!("Error sending message: {:?}", why);
+        return;
+    }
+    return;
 }
