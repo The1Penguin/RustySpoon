@@ -11,7 +11,7 @@ use serenity::{
     model::{
         channel::{Channel, Message},
         gateway::Ready,
-        id::UserId,
+        id::{ChannelId, UserId},
         permissions::Permissions,
     },
     prelude::*,
@@ -45,6 +45,11 @@ pub async fn down(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
 
 #[command]
 pub async fn fashion(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
+    fashion_helper(&ctx.http, &msg.channel_id).await;
+    return Ok(());
+}
+
+pub async fn fashion_helper(http: &Http, channel_id: &ChannelId) {
     let user = User::new("kaiyoko");
     let link = match user.submitted().await {
         Ok(v) => {
@@ -53,7 +58,7 @@ pub async fn fashion(ctx: &Context, msg: &Message, _args: Args) -> CommandResult
                 if i.data.title.contains("Fashion Report - Full Details") {
                     templink = match i.data.url {
                         Some(v) => v,
-                        None => return Ok(()),
+                        None => return,
                     };
                     break;
                 }
@@ -62,12 +67,11 @@ pub async fn fashion(ctx: &Context, msg: &Message, _args: Args) -> CommandResult
         }
         Err(why) => {
             println!("Error reading submitted, {}", why);
-            return Ok(());
+            return;
         }
     };
-    if let Err(why) = msg.channel_id.say(&ctx.http, &link as &str).await {
+    if let Err(why) = channel_id.say(http, &link as &str).await {
         println!("Error sending message: {:?}", why);
         ()
     }
-    return Ok(());
 }

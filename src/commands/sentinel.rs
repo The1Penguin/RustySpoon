@@ -18,13 +18,15 @@ use serenity::{
 };
 
 use std::{
-    collections::{HashMap},
+    collections::HashMap,
     time::{Duration, SystemTime},
 };
 
 use tokio::{task::JoinHandle, time::sleep};
 
 use uuid::Uuid;
+
+use super::general::fashion_helper;
 
 lazy_static! {
     static ref ACTIVE: Mutex<HashMap<uuid::Uuid, JoinHandle<()>>> = Mutex::new(HashMap::new());
@@ -63,8 +65,9 @@ pub async fn reminder(ctx: &Context, msg: &Message, mut args: Args) -> CommandRe
 
     let join_handlertask = tokio::task::spawn(async move {
         loop {
-            match &command as &str{
-                "cactpot" => cactpot (&http, &channel_id).await,
+            match &command as &str {
+                "cactpot" => cactpot(&http, &channel_id).await,
+                "fashion" => fashion_helper(&http, &channel_id).await,
                 other => {
                     if let Err(why) = channel_id.say(&http, other).await {
                         println!("Error sending message, {:?}", why);
@@ -105,17 +108,14 @@ pub async fn disable_reminder(_ctx: &Context, _msg: &Message, args: Args) -> Com
     return Ok(());
 }
 
-pub async fn cactpot(http: &Http, channel_id: &ChannelId){
+pub async fn cactpot(http: &Http, channel_id: &ChannelId) {
     if let Err(why) = channel_id.send_message(http, |m| {
     m.embed(|e| {
         e.title("The weekly Jumbo Cactpot");
         e.description("Jumbo Cactpot is coming soon, and if you want the early bird bonus, you better get down there");
-
         e
     });
-
     m
-
     }).await {
         println!("Error sending message: {:?}", why);
         return;
