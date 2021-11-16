@@ -19,9 +19,11 @@ use serenity::{
 
 use std::{
     collections::{HashMap, HashSet},
-    time::{Duration, SystemTime},
     net::{SocketAddr, TcpStream},
+    time::{Duration, SystemTime},
 };
+
+use roux::User;
 
 #[command]
 pub async fn down(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
@@ -41,7 +43,31 @@ pub async fn down(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
     Ok(())
 }
 
-// #[command]
-// pub async fn fashion(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
-// }
-
+#[command]
+pub async fn fashion(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
+    let user = User::new("kaiyoko");
+    let link = match user.submitted().await {
+        Ok(v) => {
+            let mut templink: String = "".to_owned();
+            for i in v.data.children {
+                if i.data.title.contains("Fashion Report - Full Details") {
+                    templink = match i.data.url {
+                        Some(v) => v,
+                        None => return Ok(()),
+                    };
+                    break;
+                }
+            }
+            templink
+        }
+        Err(why) => {
+            println!("Error reading submitted, {}", why);
+            return Ok(());
+        }
+    };
+    if let Err(why) = msg.channel_id.say(&ctx.http, &link as &str).await {
+        println!("Error sending message: {:?}", why);
+        ()
+    }
+    return Ok(());
+}
