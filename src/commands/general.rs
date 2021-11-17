@@ -21,11 +21,33 @@ use std::{
     collections::{HashMap, HashSet},
     net::{SocketAddr, TcpStream},
     time::{Duration, SystemTime},
+    path::Path,
+    fs,
 };
 
 use roux::User;
 
 use chrono::*;
+
+use serde_json::Value;
+
+struct Node {
+    start: chrono::DateTime<Utc>,
+    end: chrono::DateTime<Utc>,
+}
+
+
+// lazy_static! {
+//     static ref ACTIVE: HashMap<String, Node> = {
+//         let json = match fs::read_to_string("./persons.json"){
+//             Ok(v) => v,
+//             Err(why) => {
+//                 println!("Error reading submitted, {}", why);
+//             }
+//         };
+//         sub_values: HashMap<String, Node> = serde_json::from_str(&json)
+//         };
+// }
 
 #[command]
 pub async fn down(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
