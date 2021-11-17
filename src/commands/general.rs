@@ -79,9 +79,8 @@ pub async fn fashion_helper(http: &Http, channel_id: &ChannelId) {
 }
 
 pub async fn time_to_eorzea(date: chrono::DateTime<chrono::Local>) -> chrono::DateTime<Utc> {
-    let eorzea: DateTime<Utc> = DateTime::from_utc(
+    DateTime::from_utc(
         NaiveDateTime::from_timestamp(date.timestamp() * 3600 / 175, 0),
         Utc,
-    );
-    return eorzea;
+    )
 }
