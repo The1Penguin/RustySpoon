@@ -5,6 +5,10 @@
 [x] -> Fashion report
 [] -> Events organisting
 [] -> Timed nodes
+    [x] -> Create a way to convert local tim to eorzea time
+    [] -> Create a data struct for all possible nodes
+    [] -> Find all nodes active during time
+    [] -> Send message with said info
 [] -> Sightseeing log
 [x] -> Cactpot reminer
 [] -> Help function to explain what commands are available
