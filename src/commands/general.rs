@@ -51,7 +51,6 @@ pub fn nodes() -> &'static HashMap<(chrono::NaiveTime<>, chrono::NaiveTime<>), S
                 i["name"].to_string(),
             );
         }
-        print!("{:?}", ret);
         ret
     })
 }
