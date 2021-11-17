@@ -78,11 +78,10 @@ pub async fn fashion_helper(http: &Http, channel_id: &ChannelId) {
     }
 }
 
-pub async fn time_to_eorzea(date: chrono::DateTime<chrono::Local>) -> chrono::DateTime<Utc>{
-    const EORZEA_MULTIPLIER: i64 = 3600/175;
-
-    let epochticks = date.timestamp() * EORZEA_MULTIPLIER;
-    let eorzea = NaiveDateTime::from_timestamp(epochticks, 0);
-    let eorzea: DateTime<Utc> = DateTime::from_utc(eorzea, Utc);
+pub async fn time_to_eorzea(date: chrono::DateTime<chrono::Local>) -> chrono::DateTime<Utc> {
+    let eorzea: DateTime<Utc> = DateTime::from_utc(
+        NaiveDateTime::from_timestamp(date.timestamp() * 3600 / 175, 0),
+        Utc,
+    );
     return eorzea;
 }
