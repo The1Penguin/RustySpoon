@@ -36,8 +36,8 @@ use serde::{Serialize, Deserialize};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Node {
-    start: chrono::DateTime<Utc>,
-    end: chrono::DateTime<Utc>,
+    start: String,
+    end: String,
 }
 
 static NODES: OnceCell<HashMap<String, Node>> = OnceCell::new();
@@ -45,7 +45,14 @@ static NODES: OnceCell<HashMap<String, Node>> = OnceCell::new();
 pub fn nodes() -> &'static HashMap<String, Node> {
     NODES.get_or_init(|| {
         let json = fs::read_to_string("./out.json").expect("Error reading json");
-        let ret: HashMap<String, Node> = serde_json::from_str(&json).unwrap();
+        let vals: Value = serde_json::from_str(&json).expect("Error converting json");
+        let mut ret: HashMap<String, Node> = HashMap::new();
+        for i in vals["items"].as_array().unwrap() {
+            ret.insert(i["name"].to_string(), Node {
+                start: i["start"].to_string(),
+                end: i["end"].to_string(),
+            });
+        }
         ret
     })
 }
