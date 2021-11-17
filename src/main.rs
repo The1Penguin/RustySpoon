@@ -41,7 +41,7 @@ struct Handler;
 struct Sentinel;
 
 #[group]
-#[commands(down, fashion)]
+#[commands(down, fashion, eorzea)]
 struct General;
 
 fn get_role_id(map: HashMap<RoleId, Role>, name: String) -> Option<RoleId> {

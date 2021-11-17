@@ -78,6 +78,18 @@ pub async fn fashion_helper(http: &Http, channel_id: &ChannelId) {
     }
 }
 
+#[command]
+pub async fn eorzea(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
+    let eorzea_time = time_to_eorzea(Local::now()).await;
+    if let Err(why) = msg.channel_id.say(&ctx.http, format!("{}", eorzea_time)).await {
+        println!("Error sending message: {:?}", why);
+        ()
+    }
+    
+    Ok(())
+
+}
+
 pub async fn time_to_eorzea(date: chrono::DateTime<chrono::Local>) -> chrono::DateTime<Utc> {
     DateTime::from_utc(
         NaiveDateTime::from_timestamp(date.timestamp() * 3600 / 175, 0),
