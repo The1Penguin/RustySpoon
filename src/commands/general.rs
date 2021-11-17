@@ -1,3 +1,4 @@
+use once_cell::sync::OnceCell;
 use serenity::{
     async_trait,
     framework::standard::{
@@ -27,27 +28,27 @@ use std::{
 
 use roux::User;
 
-use chrono::*;
+use chrono::{NaiveDateTime, Local, Utc, DateTime};
 
-use serde_json::Value;
+use serde_json::*;
 
-struct Node {
+use serde::{Serialize, Deserialize};
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Node {
     start: chrono::DateTime<Utc>,
     end: chrono::DateTime<Utc>,
 }
 
+static NODES: OnceCell<HashMap<String, Node>> = OnceCell::new();
 
-// lazy_static! {
-//     static ref ACTIVE: HashMap<String, Node> = {
-//         let json = match fs::read_to_string("./persons.json"){
-//             Ok(v) => v,
-//             Err(why) => {
-//                 println!("Error reading submitted, {}", why);
-//             }
-//         };
-//         sub_values: HashMap<String, Node> = serde_json::from_str(&json)
-//         };
-// }
+pub fn nodes() -> &'static HashMap<String, Node> {
+    NODES.get_or_init(|| {
+        let json = fs::read_to_string("./out.json").expect("Error reading json");
+        let ret: HashMap<String, Node> = serde_json::from_str(&json).unwrap();
+        ret
+    })
+}
 
 #[command]
 pub async fn down(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {

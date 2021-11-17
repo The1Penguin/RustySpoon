@@ -115,6 +115,8 @@ async fn main() {
         Err(why) => panic!("Could not access application info: {:?}", why),
     };
 
+    nodes();
+
     let framework = StandardFramework::new()
         .configure(|c| c.prefix("<").owners(owners))
         .group(&GENERAL_GROUP)
