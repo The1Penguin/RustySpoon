@@ -25,6 +25,8 @@ use std::{
 
 use roux::User;
 
+use chrono::*;
+
 #[command]
 pub async fn down(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
     let addrs = [SocketAddr::from(([195, 82, 50, 47], 54992))];
@@ -74,4 +76,13 @@ pub async fn fashion_helper(http: &Http, channel_id: &ChannelId) {
         println!("Error sending message: {:?}", why);
         ()
     }
+}
+
+pub async fn time_to_eorzea(date: chrono::DateTime<chrono::Local>) -> chrono::DateTime<Utc>{
+    const EORZEA_MULTIPLIER: i64 = 3600/175;
+
+    let epochticks = date.timestamp() * EORZEA_MULTIPLIER;
+    let eorzea = NaiveDateTime::from_timestamp(epochticks, 0);
+    let eorzea: DateTime<Utc> = DateTime::from_utc(eorzea, Utc);
+    return eorzea;
 }
