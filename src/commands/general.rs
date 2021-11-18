@@ -35,7 +35,8 @@ use serde_json::*;
 static NODES: OnceCell<HashMap<(chrono::NaiveTime, chrono::NaiveTime), (String, String)>> =
     OnceCell::new();
 
-pub fn node_generate() -> &'static HashMap<(chrono::NaiveTime, chrono::NaiveTime), (String, String)> {
+pub fn node_generate() -> &'static HashMap<(chrono::NaiveTime, chrono::NaiveTime), (String, String)>
+{
     NODES.get_or_init(|| {
         let json = fs::read_to_string("./out.json").expect("Error reading json");
         let vals: Value = serde_json::from_str(&json).expect("Error converting json");
@@ -45,7 +46,9 @@ pub fn node_generate() -> &'static HashMap<(chrono::NaiveTime, chrono::NaiveTime
             ret.insert(
                 (
                     chrono::NaiveTime::parse_from_str(
-                        i["start"].as_str().expect("Error parsing json query"),
+                        i["start"]
+                            .as_str()
+                            .expect("Error parsing json query"),
                         "%H:%M",
                     )
                     .expect("Error converting time to DateTime"),
@@ -55,7 +58,10 @@ pub fn node_generate() -> &'static HashMap<(chrono::NaiveTime, chrono::NaiveTime
                     )
                     .expect("Error converting time to DateTime"),
                 ),
-                (i["name"].to_string(), i["location"].to_string()),
+                (
+                    i["name"].as_str().unwrap().to_string(),
+                    i["location"].as_str().unwrap().to_string(),
+                ),
             );
         }
         ret
@@ -119,15 +125,13 @@ pub async fn nodes(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
     let mut message = "All active nodes right now are:\n".to_owned();
     let hash = match NODES.get() {
         Some(v) => v,
-        None => {
-            return Ok(())
-        }
+        None => return Ok(()),
     };
     for (times, (name, location)) in hash.iter() {
         if within_time(*times, eorzea_time).await {
             message.push_str(&format!("{} in {}\n", &name as &str, &location as &str));
         }
-    };
+    }
     if let Err(why) = msg.channel_id.say(&ctx.http, message).await {
         println!("Error sending message: {:?}", why);
         ()
@@ -136,17 +140,20 @@ pub async fn nodes(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
     Ok(())
 }
 
-pub async fn within_time(times: (chrono::NaiveTime, chrono::NaiveTime), now: chrono::NaiveTime) -> bool {
+pub async fn within_time(
+    times: (chrono::NaiveTime, chrono::NaiveTime),
+    now: chrono::NaiveTime,
+) -> bool {
     let mut temp = times.1;
     if times.1 < times.0 {
         temp = times.1 + chrono::Duration::days(1);
     }
-    
+
     times.0 <= now && now <= temp
 }
 
 pub async fn time_to_eorzea(date: chrono::DateTime<chrono::Local>) -> chrono::NaiveTime {
-    let temp : chrono::DateTime<Utc> = DateTime::from_utc(
+    let temp: chrono::DateTime<Utc> = DateTime::from_utc(
         NaiveDateTime::from_timestamp(date.timestamp() * 3600 / 175, 0),
         Utc,
     );
