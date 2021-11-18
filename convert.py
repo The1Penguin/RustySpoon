@@ -20,11 +20,15 @@ data2 = json.load(b)
  
 # Iterating through the json
 # list
-for i in range(len(data['items'])):
+for i in data2['nodes']:
     v = {}
-    v["name"] = data['items'][i]["name"]
-    v["start"] = data2['nodes'][i]["startTime"]
-    v["end"] = data2['nodes'][i]["endTime"]
+    v["location"] = i["zone"]
+    v["start"] = i["startTime"]
+    v["end"] = i["endTime"]
+    list = i["itemIds"]
+    for j in data['items']:
+        if any(map(lambda x: x==j["id"], list)):
+            v["name"] = j["name"]
     a["items"].append(v)
 
 with open("out.json", "w") as outfile:

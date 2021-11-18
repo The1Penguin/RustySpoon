@@ -41,7 +41,7 @@ struct Handler;
 struct Sentinel;
 
 #[group]
-#[commands(down, fashion, eorzea)]
+#[commands(down, fashion, nodes)]
 struct General;
 
 fn get_role_id(map: HashMap<RoleId, Role>, name: String) -> Option<RoleId> {
@@ -115,7 +115,7 @@ async fn main() {
         Err(why) => panic!("Could not access application info: {:?}", why),
     };
 
-    nodes();
+    node_generate();
 
     let framework = StandardFramework::new()
         .configure(|c| c.prefix("<").owners(owners))
