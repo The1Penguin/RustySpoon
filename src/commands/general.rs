@@ -46,9 +46,7 @@ pub fn node_generate() -> &'static HashMap<(chrono::NaiveTime, chrono::NaiveTime
             ret.insert(
                 (
                     chrono::NaiveTime::parse_from_str(
-                        i["start"]
-                            .as_str()
-                            .expect("Error parsing json query"),
+                        i["start"].as_str().expect("Error parsing json query"),
                         "%H:%M",
                     )
                     .expect("Error converting time to DateTime"),
@@ -66,6 +64,48 @@ pub fn node_generate() -> &'static HashMap<(chrono::NaiveTime, chrono::NaiveTime
         }
         ret
     })
+}
+
+#[command]
+pub async fn help(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
+    if let Err(why) = msg.channel_id.send_message(&ctx.http, |m| {
+        m.embed(|e| {
+            e.title("General Commands");
+            e.description(
+                "help - This command which shows all available commands \n
+                 down - Pings the Louisoix server to see if it is available \n
+                 fashion - Shows the latest fashion report requirements for the week \n
+                 nodes - Shows the materials able to be harvested at timed nodes and where to find them \n
+                "
+                );
+            e
+        });
+        m
+    }).await {
+        println!("Error sending message: {:?}", why);
+        ()
+    }
+    if let Err(why) = msg.channel_id.send_message(&ctx.http, |m| {
+        m.embed(|e| {
+            e.title("Sentinels Commands");
+            e.description(
+                "
+                 reminder - takes a unix timestamp, then an interval and lastly a command, will then on run that command every inteval after the unix timestamp.
+                 Example `<reminder 0 10 fashion` will create a fashion report post every 10 seconds.
+                 Available commands there are fashion, cactpot or any string you want. \n
+                 disable_reminder - uses the uuid given from reminder, and disables it
+                 Example `<disable_reminder f6cb4bc5-ea8a-4bcb-b21a-97b03ab56dba` \n
+                "
+                );
+            e
+        });
+        m
+    }).await {
+        println!("Error sending message: {:?}", why);
+        ()
+    }
+
+    Ok(())
 }
 
 #[command]
@@ -129,7 +169,7 @@ pub async fn nodes(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
     };
     for (times, (name, location)) in hash.iter() {
         if within_time(*times, eorzea_time).await {
-            message.push_str(&format!("{} in {}\n", &name as &str, &location as &str));
+            message.push_str(&format!("{} in {}\n", &name, &location));
         }
     }
     if let Err(why) = msg.channel_id.say(&ctx.http, message).await {

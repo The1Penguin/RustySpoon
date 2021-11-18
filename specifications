@@ -3,13 +3,11 @@
 [x] -> Able to disable a reoccurring notification
 [x] -> Ping to check if Louisoix is down or no
 [x] -> Fashion report
-[] -> Events organising
 [x] -> Timed nodes
     [x] -> Create a way to convert local time to eorzea time
     [x] -> Create a data struct for all possible nodes
         Decided to just have hashmap which then has tuples, so it's kinda there, but not as originally planned
     [x] -> Find all nodes active during time
     [x] -> Send message with said info
-[] -> Sightseeing log
 [x] -> Cactpot reminder
-[] -> Help function to explain what commands are available
+[x] -> Help function to explain what commands are available
