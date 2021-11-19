@@ -41,7 +41,7 @@ struct Handler;
 struct Sentinel;
 
 #[group]
-#[commands(down, fashion, nodes, help)]
+#[commands(down, fashion, nodes, help, chest)]
 struct General;
 
 fn get_role_id(map: HashMap<RoleId, Role>, name: String) -> Option<RoleId> {
@@ -115,12 +115,16 @@ async fn main() {
         Err(why) => panic!("Could not access application info: {:?}", why),
     };
 
+    let args: Vec<String> = env::args().collect();
+    init(args[1].clone(), args[2].clone());
     node_generate();
 
     let framework = StandardFramework::new()
         .configure(|c| c.prefix("<").owners(owners))
         .group(&GENERAL_GROUP)
-        .group(&SENTINEL_GROUP);
+        .group(&SENTINEL_GROUP)
+        .bucket("requests", |b| b.delay(5))
+        .await;
 
     // Creates a client and a handler
     let mut client = Client::builder(&token)

@@ -1,4 +1,5 @@
 use once_cell::sync::OnceCell;
+use reqwest::{cookie::Jar, header::COOKIE, Method, Response, Url};
 use serenity::{
     async_trait,
     framework::standard::{
@@ -20,13 +21,14 @@ use serenity::{
 
 use std::{
     collections::{HashMap, HashSet},
-    fs,
+    env, fs,
     net::{SocketAddr, TcpStream},
     path::Path,
+    sync::Arc,
     time::{Duration, SystemTime},
 };
 
-use roux::User;
+use roux::{responses, User};
 
 use chrono::{DateTime, Local, NaiveDateTime, Utc};
 
@@ -34,6 +36,11 @@ use serde_json::*;
 
 static NODES: OnceCell<HashMap<(chrono::NaiveTime, chrono::NaiveTime), (String, String)>> =
     OnceCell::new();
+static FC_NUMBER: OnceCell<String> = OnceCell::new();
+static CHEST_NUMBER: OnceCell<String> = OnceCell::new();
+lazy_static! {
+    static ref SESS: String = env::var("LDST_SESS").expect("Expected a token in the environment");
+}
 
 pub fn node_generate() -> &'static HashMap<(chrono::NaiveTime, chrono::NaiveTime), (String, String)>
 {
@@ -64,6 +71,11 @@ pub fn node_generate() -> &'static HashMap<(chrono::NaiveTime, chrono::NaiveTime
         }
         ret
     })
+}
+
+pub fn init(fc_number: String, chest_number: String) -> &'static String {
+    FC_NUMBER.get_or_init(|| fc_number);
+    CHEST_NUMBER.get_or_init(|| chest_number)
 }
 
 #[command]
@@ -109,6 +121,60 @@ pub async fn help(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
 }
 
 #[command]
+#[bucket = "requests"]
+pub async fn chest(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
+    let cookie = format!("ldst_sess={}", SESS.as_str());
+    let url = format!(
+        "https://na.finalfantasyxiv.com/lodestone/freecompany/{}/chest/{}",
+        match FC_NUMBER.get() {
+            Some(v) => v,
+            None => {
+                println!("Error getting FC_NUMBER");
+                return Ok(());
+            }
+        },
+        match CHEST_NUMBER.get() {
+            Some(v) => v,
+            None => {
+                println!("Error getting CHEST_NUMBER");
+                return Ok(());
+            }
+        }
+    )
+    .parse::<Url>()
+    .unwrap();
+    let jar = Arc::new(Jar::default());
+    jar.add_cookie_str(cookie.as_str(), &url);
+    let client = match reqwest::ClientBuilder::new()
+        .cookie_store(true)
+        .cookie_provider(jar)
+        .build()
+    {
+        Ok(v) => v,
+        Err(why) => {
+            println!("Error creating reqwest client: {:?}", why);
+            return Ok(());
+        }
+    };
+    let res = client.get(url).send().await;
+
+    let res = match res {
+        Ok(v) => v,
+        Err(why) => {
+            println!("Error sending message: {:?}", why);
+            return Ok(());
+        }
+    };
+
+    for i in res.cookies() {
+        println!("{:?}", i);
+    }
+
+    Ok(())
+}
+
+#[command]
+#[bucket = "requests"]
 pub async fn down(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
     let addrs = [SocketAddr::from(([195, 82, 50, 47], 54992))];
     if let Ok(_) = TcpStream::connect(&addrs[..]) {
@@ -127,6 +193,7 @@ pub async fn down(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
 }
 
 #[command]
+#[bucket = "requests"]
 pub async fn fashion(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
     fashion_helper(&ctx.http, &msg.channel_id).await;
     return Ok(());
@@ -160,6 +227,7 @@ pub async fn fashion_helper(http: &Http, channel_id: &ChannelId) {
 }
 
 #[command]
+#[bucket = "requests"]
 pub async fn nodes(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
     let eorzea_time = time_to_eorzea(Local::now()).await;
     let mut message = "All active nodes right now are:\n".to_owned();
