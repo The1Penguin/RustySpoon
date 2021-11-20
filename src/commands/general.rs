@@ -82,6 +82,7 @@ pub async fn help(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
                  down - Pings the Louisoix server to see if it is available \n
                  fashion - Shows the latest fashion report requirements for the week \n
                  nodes - Shows the materials able to be harvested at timed nodes and where to find them \n
+                 chest - Give a number and it will show the content of the chest \n
                 "
                 );
             e
