@@ -1,5 +1,9 @@
 use once_cell::sync::OnceCell;
 use reqwest::{cookie::Jar, header::COOKIE, Method, Response, Url};
+use select::{
+    document::{self, Document},
+    predicate::Class,
+};
 use serenity::{
     async_trait,
     framework::standard::{
@@ -37,7 +41,6 @@ use serde_json::*;
 static NODES: OnceCell<HashMap<(chrono::NaiveTime, chrono::NaiveTime), (String, String)>> =
     OnceCell::new();
 static FC_NUMBER: OnceCell<String> = OnceCell::new();
-static CHEST_NUMBER: OnceCell<String> = OnceCell::new();
 lazy_static! {
     static ref SESS: String = env::var("LDST_SESS").expect("Expected a token in the environment");
 }
@@ -73,9 +76,8 @@ pub fn node_generate() -> &'static HashMap<(chrono::NaiveTime, chrono::NaiveTime
     })
 }
 
-pub fn init(fc_number: String, chest_number: String) -> &'static String {
-    FC_NUMBER.get_or_init(|| fc_number);
-    CHEST_NUMBER.get_or_init(|| chest_number)
+pub fn init(fc_number: String) -> &'static String {
+    FC_NUMBER.get_or_init(|| fc_number)
 }
 
 #[command]
@@ -120,9 +122,42 @@ pub async fn help(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
     Ok(())
 }
 
+#[derive(Debug)]
+pub struct ChestItem {
+    item: String,
+    amount: String,
+}
+
 #[command]
 #[bucket = "requests"]
-pub async fn chest(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
+pub async fn chest(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
+    let chest_number = args.single::<u64>()?;
+    if !(1 <= chest_number && chest_number <= 5) {
+        if let Err(why) = msg
+            .channel_id
+            .say(&ctx.http, "Choose a number between 1 and 5")
+            .await
+        {
+            println!("Error sending message: {:?}", why);
+            ()
+        }
+        return Ok(());
+    }
+    let items = get_items(chest_number).await;
+
+    let mut message = format!("Items in chest {} are:\n", chest_number);
+    for i in items {
+        message.push_str(&format!("{}, amount: {}\n", i.item, i.amount));
+    }
+    if let Err(why) = msg.channel_id.say(&ctx.http, message).await {
+        println!("Error sending message: {:?}", why);
+        ()
+    };
+
+    Ok(())
+}
+
+pub async fn get_items(chest_number: u64) -> Vec<ChestItem> {
     let cookie = format!("ldst_sess={}", SESS.as_str());
     let url = format!(
         "https://na.finalfantasyxiv.com/lodestone/freecompany/{}/chest/{}",
@@ -130,16 +165,10 @@ pub async fn chest(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
             Some(v) => v,
             None => {
                 println!("Error getting FC_NUMBER");
-                return Ok(());
+                return vec![];
             }
         },
-        match CHEST_NUMBER.get() {
-            Some(v) => v,
-            None => {
-                println!("Error getting CHEST_NUMBER");
-                return Ok(());
-            }
-        }
+        chest_number
     )
     .parse::<Url>()
     .unwrap();
@@ -153,7 +182,7 @@ pub async fn chest(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
         Ok(v) => v,
         Err(why) => {
             println!("Error creating reqwest client: {:?}", why);
-            return Ok(());
+            return vec![];
         }
     };
     let res = client.get(url).send().await;
@@ -162,15 +191,35 @@ pub async fn chest(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
         Ok(v) => v,
         Err(why) => {
             println!("Error sending message: {:?}", why);
-            return Ok(());
+            return vec![];
         }
     };
 
-    for i in res.cookies() {
-        println!("{:?}", i);
+    let document = Document::from(res.text().await.unwrap().as_str());
+
+    let mut items = vec![];
+
+    for node in document.find(Class("item-list__list")) {
+        let item = ChestItem {
+            item: node
+                .find(Class("db-tooltip__item__name"))
+                .next()
+                .unwrap()
+                .first_child()
+                .expect("Expected a child")
+                .text(),
+            amount: node
+                .find(Class("item-list__number"))
+                .next()
+                .unwrap()
+                .first_child()
+                .expect("Expected a child")
+                .text(),
+        };
+        items.push(item);
     }
 
-    Ok(())
+    items
 }
 
 #[command]
@@ -220,7 +269,7 @@ pub async fn fashion_helper(http: &Http, channel_id: &ChannelId) {
             return;
         }
     };
-    if let Err(why) = channel_id.say(http, &link as &str).await {
+    if let Err(why) = channel_id.say(http, &link).await {
         println!("Error sending message: {:?}", why);
         ()
     }

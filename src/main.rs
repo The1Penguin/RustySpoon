@@ -116,7 +116,7 @@ async fn main() {
     };
 
     let args: Vec<String> = env::args().collect();
-    init(args[1].clone(), args[2].clone());
+    init(args[1].clone());
     node_generate();
 
     let framework = StandardFramework::new()
