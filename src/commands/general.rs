@@ -1,38 +1,30 @@
 use once_cell::sync::OnceCell;
-use reqwest::{cookie::Jar, header::COOKIE, Method, Response, Url};
+use reqwest::{cookie::Jar, Url};
 use select::{
-    document::{self, Document},
+    document::Document,
     predicate::Class,
 };
 use serenity::{
-    async_trait,
     framework::standard::{
-        buckets::{LimitedFor, RevertBucket},
-        help_commands,
-        macros::{check, command, group, help, hook},
-        Args, CommandGroup, CommandOptions, CommandResult, DispatchError, HelpOptions, Reason,
-        StandardFramework,
+        macros::command,
+        Args, CommandResult,
     },
     http::Http,
     model::{
-        channel::{Channel, Message},
-        gateway::Ready,
-        id::{ChannelId, UserId},
-        permissions::Permissions,
+        channel::Message,
+        id::ChannelId,
     },
     prelude::*,
 };
 
 use std::{
-    collections::{HashMap, HashSet},
+    collections::HashMap,
     env, fs,
     net::{SocketAddr, TcpStream},
-    path::Path,
     sync::Arc,
-    time::{Duration, SystemTime},
 };
 
-use roux::{responses, User};
+use roux::User;
 
 use chrono::{DateTime, Local, NaiveDateTime, Utc};
 
@@ -122,7 +114,6 @@ pub async fn help(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
     Ok(())
 }
 
-#[derive(Debug)]
 pub struct ChestItem {
     item: String,
     amount: String,

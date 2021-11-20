@@ -1,4 +1,3 @@
-#![allow(unused_imports)]
 #[macro_use]
 extern crate lazy_static;
 mod commands;
@@ -8,27 +7,20 @@ use commands::{general::*, sentinel::*};
 use std::{
     collections::{HashMap, HashSet},
     env,
-    fmt::Write,
-    sync::Arc,
 };
 
 use serenity::{
     async_trait,
     client::bridge::gateway::GatewayIntents,
     framework::standard::{
-        buckets::{LimitedFor, RevertBucket},
-        help_commands,
-        macros::{check, command, group, help, hook},
-        Args, CommandGroup, CommandOptions, CommandResult, DispatchError, HelpOptions, Reason,
+        macros::group,
         StandardFramework,
     },
     http::Http,
     model::{
-        channel::{Channel, Message},
-        event::GuildMemberAddEvent,
         gateway::Ready,
         guild::*,
-        id::{GuildId, RoleId, UserId},
+        id::{GuildId, RoleId},
         permissions::Permissions,
     },
     prelude::*,
