@@ -90,7 +90,6 @@ pub async fn help(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
         m
     }).await {
         println!("Error sending message: {:?}", why);
-        ()
     }
     if let Err(why) = msg.channel_id.send_message(&ctx.http, |m| {
         m.embed(|e| {
@@ -109,7 +108,6 @@ pub async fn help(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
         m
     }).await {
         println!("Error sending message: {:?}", why);
-        ()
     }
 
     Ok(())
@@ -124,14 +122,13 @@ pub struct ChestItem {
 #[bucket = "requests"]
 pub async fn chest(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let chest_number = args.single::<u64>()?;
-    if !(1 <= chest_number && chest_number <= 5) {
+    if !(1..=5).contains(&chest_number)  {
         if let Err(why) = msg
             .channel_id
             .say(&ctx.http, "Choose a number between 1 and 5")
             .await
         {
             println!("Error sending message: {:?}", why);
-            ()
         }
         return Ok(());
     }
@@ -143,7 +140,6 @@ pub async fn chest(ctx: &Context, msg: &Message, mut args: Args) -> CommandResul
     }
     if let Err(why) = msg.channel_id.say(&ctx.http, message).await {
         println!("Error sending message: {:?}", why);
-        ()
     };
 
     Ok(())
@@ -218,15 +214,13 @@ pub async fn get_items(chest_number: u64) -> Vec<ChestItem> {
 #[bucket = "requests"]
 pub async fn down(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
     let addrs = [SocketAddr::from(([195, 82, 50, 47], 54992))];
-    if let Ok(_) = TcpStream::connect(&addrs[..]) {
+    if TcpStream::connect(&addrs[..]).is_ok() {
         if let Err(why) = msg.channel_id.say(&ctx.http, "Louisoix is up").await {
             println!("Error sending message: {:?}", why);
-            ()
         }
     } else {
         if let Err(why) = msg.channel_id.say(&ctx.http, "Louisoix is down").await {
             println!("Error sending message: {:?}", why);
-            ()
         }
     }
 
@@ -263,7 +257,6 @@ pub async fn fashion_helper(http: &Http, channel_id: &ChannelId) {
     };
     if let Err(why) = channel_id.say(http, &link).await {
         println!("Error sending message: {:?}", why);
-        ()
     }
 }
 
@@ -283,7 +276,6 @@ pub async fn nodes(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
     }
     if let Err(why) = msg.channel_id.say(&ctx.http, message).await {
         println!("Error sending message: {:?}", why);
-        ()
     };
 
     Ok(())

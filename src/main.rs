@@ -12,10 +12,7 @@ use std::{
 use serenity::{
     async_trait,
     client::bridge::gateway::GatewayIntents,
-    framework::standard::{
-        macros::group,
-        StandardFramework,
-    },
+    framework::standard::{macros::group, StandardFramework},
     http::Http,
     model::{
         gateway::Ready,
@@ -69,8 +66,11 @@ impl EventHandler for Handler {
     // Prints successfully connected
     async fn ready(&self, ctx: Context, ready: Ready) {
         println!("{} connected", ready.user.name);
-        let permissions = Permissions::all();
-        match ready.user.invite_url(ctx.http.as_ref(), permissions).await {
+        match ready
+            .user
+            .invite_url(ctx.http.as_ref(), Permissions::all())
+            .await
+        {
             Ok(v) => {
                 println!("{} is the invite link for the bot", v);
                 return;

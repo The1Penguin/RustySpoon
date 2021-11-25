@@ -114,5 +114,4 @@ pub async fn cactpot(http: &Http, channel_id: &ChannelId) {
         println!("Error sending message: {:?}", why);
         return;
     }
-    return;
 }
