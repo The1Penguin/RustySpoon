@@ -42,7 +42,7 @@ fn get_role_id(map: HashMap<RoleId, Role>, name: String) -> Option<RoleId> {
 impl EventHandler for Handler {
     // Adds a role when a memeber joins the server
     async fn guild_member_addition(&self, ctx: Context, guild_id: GuildId, mut new_member: Member) {
-        println!("Person has joined");
+        println!("{} has joined", new_member.display_name());
         let roles = match guild_id.roles(ctx.http.as_ref()).await {
             Ok(v) => v,
             Err(why) => {

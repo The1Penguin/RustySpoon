@@ -32,20 +32,6 @@ pub async fn reminder(ctx: &Context, msg: &Message, mut args: Args) -> CommandRe
     let first = args.single::<u64>()?;
     let interval = args.single::<u64>()?;
     let command = args.rest().to_owned();
-
-    loop {
-        match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
-            Ok(v) => {
-                if v.as_secs() > first {
-                    break;
-                }
-            }
-            Err(why) => {
-                println!("Something went wrong with time check, {:?}", why);
-            }
-        }
-        sleep(Duration::from_secs(30)).await;
-    }
     let uuid = Uuid::new_v4();
     let http = ctx.http.clone();
     let channel_id = msg.channel_id;
@@ -59,9 +45,22 @@ pub async fn reminder(ctx: &Context, msg: &Message, mut args: Args) -> CommandRe
 
     let join_handlertask = tokio::task::spawn(async move {
         loop {
+            match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
+                Ok(v) => {
+                    if v.as_secs() > first {
+                        break;
+                    }
+                }
+                Err(why) => {
+                    println!("Something went wrong with time check, {:?}", why);
+                }
+            }
+            sleep(Duration::from_secs(30)).await;
+        }
+        loop {
             match &command as &str {
                 "cactpot" => cactpot(&http, &channel_id).await,
-                "fashion" => fashion_helper(&http, &channel_id).await,
+                    "fashion" => fashion_helper(&http, &channel_id).await,
                 other => {
                     if let Err(why) = channel_id.say(&http, other).await {
                         println!("Error sending message, {:?}", why);
